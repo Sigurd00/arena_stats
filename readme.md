@@ -1,5 +1,32 @@
 # Todo List
-- [ ] item 1 
+- [ ] Create Game objects from CSV file.
+    - [x] Read a CSV file.
+    - [ ] Convert records into list of Game objects
+- [ ] Have list of Games
+    - [ ] Should we have list for each different game type, ie 2v2, 3v3, and rbg, or should we have them all in one list?
+    - [ ] Calculate every comp played against
+    - [ ] How do we represent this smartly?
+- [ ] Things to analyze
+    - [ ] Rating difference
+    - [ ] Best winrate vs comp
+    - [ ] Worst winrate vs comp
+    - [ ] Most often played against
+    - [ ] Chart rating diff?
+    - [ ] Maps with best winrate?
+    - [ ] Game frequency?
+    - [ ] How much rating lost / gained vs comps
+    - [ ] Average game time
+    - [ ] Game time vs different comps
+    - [ ] Highest rating / mmr
+- [ ] User experience
+    - [ ] Show list of commands on startup?
+    - [ ] How should the commands look like?
+    - [ ] Handle user input
+    - [ ] Make file paramater optional
+    - [ ] Let user paste csv into cli
+    - [ ] Let user import csv from file while program running
+- [ ] Tests and benches
+
 # How to run
-- Export data from your REflex Addon and save the file as <filename>.csv in the project.
-- cargo run <filename>.csv
+- Export data from your REflex Addon and save the file as `<filename>.csv` in the project.
+- `cargo run <filename>.csv`
