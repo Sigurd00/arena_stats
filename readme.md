@@ -1,7 +1,7 @@
 # Todo List
 - [ ] Create Game objects from CSV file.
     - [x] Read a CSV file.
-    - [ ] Convert records into list of Game objects
+    - [ ] **Currently working on!** Convert records into list of Game objects 
 - [ ] Have list of Games
     - [ ] Should we have list for each different game type, ie 2v2, 3v3, and rbg, or should we have them all in one list?
     - [ ] Calculate every comp played against
