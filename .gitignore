@@ -1,2 +1,7 @@
-/target
+target/
+debug/
 data.csv
+
+Cargo.lock
+
+**/*.rs.bk
