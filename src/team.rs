@@ -1,15 +1,7 @@
 use crate::player::Player;
 
+#[derive(Debug)]
 pub struct Team {
-    players: Vec<Player>,
-    mmr: i32,
-}
-
-impl Team {
-    pub fn new(players: Vec<Player>, mmr: i32) -> Self {
-        Team {
-            players,
-            mmr,
-        }
-    }
+    pub players: Vec<Player>,
+    pub mmr: i32,
 }

@@ -1,18 +1,15 @@
 use crate::class::Class;
 
+#[derive(Debug)]
 pub struct Player {
-    name: String,
-    class: Class,
+    pub name: String,
+    pub realm: Option<Realm>,
+    pub class: Class,
+    pub spec: String, //Todo, change this
 }
 
-impl Player {
-    pub fn new(player_string: &str) -> Self {
-        let mut split =player_string.split(',');
-        let split_vec:Vec<&str> = split.collect();
-        Player {
-            name: String::from("Skli"),
-            class: Class::Priest,
-        }
-    }
+//TODO: Obviously get a list of realms
+#[derive(Debug)]
+pub enum Realm {
+    Draenor,
 }
-

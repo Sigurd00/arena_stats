@@ -1,11 +1,17 @@
-use chrono::{DateTime, Utc, Duration, NaiveDateTime};
+use chrono::{DateTime, Duration, Utc};
 use csv::StringRecord;
 
-use crate::{team::Team, player::Player};
+use crate::{
+    parser::{self, parse_teams},
+    team::Team,
+};
 
+#[derive(Debug)]
 pub enum GameMap {
     ALLMAPS, //TODO: Get a list of all arena maps
 }
+
+#[derive(Debug)]
 pub struct Game {
     pub timestamp: DateTime<Utc>,
     pub map: GameMap,
@@ -23,32 +29,32 @@ pub struct Game {
 
 impl Game {
     pub fn new(record: StringRecord) -> Self {
-        let mut friendly_players:Vec<Player>;
-        let mut enemy_players:Vec<Player>;
-
-        
+        let (friendly_team, enemy_team) = parse_teams(
+            record[3].to_string(),
+            record[4].to_string(),
+            record[12].to_string(),
+            record[13].to_string(),
+        );
         Game {
-            timestamp: parse_timestamp(&record[0]),
+            timestamp: parser::parse_timestamp(&record[0]),
             map: GameMap::ALLMAPS,
             //friendly_team: Team::new()),
-            friendly_team: todo!(),
-            enemy_team: todo!(),
-            duration: todo!(),
-            victory: todo!(),
-            killing_blows: todo!(),
-            damage: todo!(),
-            healing: todo!(),
-            honor: todo!(),
-            rating_change: todo!(),
-            is_rated: todo!(),
+            friendly_team: friendly_team,
+            enemy_team: enemy_team,
+            duration: Duration::seconds(record[5].parse::<i64>().unwrap()),
+            victory: match &record[6] {
+                "true" => true,
+                _ => false,
+            },
+            killing_blows: record[7].parse::<i32>().unwrap(),
+            damage: record[8].parse::<i32>().unwrap(),
+            healing: record[9].parse::<i32>().unwrap(),
+            honor: record[10].parse::<i32>().unwrap(),
+            rating_change: record[11].parse::<i32>().unwrap(),
+            is_rated: match &record[15] {
+                "true" => true,
+                _ => false,
+            },
         }
     }
-}
-
-fn parse_timestamp(timestamp: &str) -> DateTime<Utc> {
-    let timestamp = timestamp.parse::<i64>().unwrap();
-    let naive = NaiveDateTime::from_timestamp(timestamp, 0);
-    let datetime: DateTime<Utc> = DateTime::from_utc(naive, Utc);
-    //TODO: maybe format timestamp here.
-    datetime
 }
