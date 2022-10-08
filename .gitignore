@@ -1,6 +1,7 @@
 target/
 debug/
-data.csv
+
+*.csv
 
 Cargo.lock
 

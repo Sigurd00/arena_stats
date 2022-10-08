@@ -6,10 +6,12 @@
     - [x] Parse timestamp into DateTime 
         - [x] Parse player names and class into Player struct
 - [x] Have list of Games
-- [ ] **Currently working on!** Make some very solid tests of above^ (testdata.csv maybe?)
+- [x] Identify the different team compositions
+- [ ] **Need to refactor ^ to be able to do this** Identify every game with the same team comps on both enemy team or friendly team
+- [ ] 
 - [ ] Make lists of wins and lists of losses for optimization
 - [ ] Things to analyze
-    - [ ] Calculate every comp played against
+    - [x] Calculate every comp played against
     - [ ] Rating difference
     - [ ] Best winrate vs comp
     - [ ] Worst winrate vs comp

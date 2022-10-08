@@ -46,7 +46,7 @@ pub fn prase_players(team_string: String) -> Vec<Player> {
 }
 
 fn parse_player(player_string: &str) -> Player {
-    let mut something = player_string.split('-').into_iter();
+    let mut something = player_string.split('-');
     Player {
         class: Class::from_str(something.next().unwrap()).unwrap(),
         spec: something.next().unwrap().to_string(),
@@ -56,8 +56,5 @@ fn parse_player(player_string: &str) -> Player {
 }
 
 fn parse_potential_realm(maybe_realm: Option<&str>) -> Option<Realm> {
-    match maybe_realm {
-        Some(_realm) => Some(Realm::Draenor),
-        None => None,
-    }
+    maybe_realm.map(|_realm| Realm::Draenor)
 }

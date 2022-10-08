@@ -1,7 +1,9 @@
 use chrono::{DateTime, Duration, Utc};
 use csv::StringRecord;
+use itertools::Itertools;
 
 use crate::{
+    class::Comp,
     parser::{self, parse_teams},
     team::Team,
 };
@@ -38,23 +40,44 @@ impl Game {
         Game {
             timestamp: parser::parse_timestamp(&record[0]),
             map: GameMap::ALLMAPS,
-            //friendly_team: Team::new()),
-            friendly_team: friendly_team,
-            enemy_team: enemy_team,
+            friendly_team,
+            enemy_team,
             duration: Duration::seconds(record[5].parse::<i64>().unwrap()),
-            victory: match &record[6] {
-                "true" => true,
-                _ => false,
-            },
+            victory: matches!(&record[6], "true"),
             killing_blows: record[7].parse::<i32>().unwrap(),
             damage: record[8].parse::<i32>().unwrap(),
             healing: record[9].parse::<i32>().unwrap(),
             honor: record[10].parse::<i32>().unwrap(),
             rating_change: record[11].parse::<i32>().unwrap(),
-            is_rated: match &record[15] {
-                "true" => true,
-                _ => false,
-            },
+            is_rated: matches!(&record[15], "true"),
         }
+    }
+}
+
+pub fn generate_teamcomp_buckets(games: Vec<Game>) -> (Vec<Comp>, Vec<Comp>) {
+    let mut friendly_comps: Vec<Comp> = vec![]; //TODO: Figure out how we connect the friendly_comps games with the correct enemy_comps games
+    let mut enemy_comps: Vec<Comp> = vec![];
+    for game in games {
+        let mut comp = Comp::new();
+        for player in game.friendly_team.players {
+            comp.add_class(player.class);
+        }
+        friendly_comps.push(comp);
+        let mut comp = Comp::new();
+        for player in game.enemy_team.players {
+            comp.add_class(player.class);
+        }
+        enemy_comps.push(comp);
+    }
+    friendly_comps = friendly_comps.into_iter().unique().collect();
+    (friendly_comps, enemy_comps)
+}
+
+pub fn print_all_comps(comps: Vec<Comp>) {
+    for comp in comps {
+        for class in comp.team_classes() {
+            print!("{:? }", class);
+        }
+        println!();
     }
 }
