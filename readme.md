@@ -11,7 +11,8 @@
 - [ ] Make lists of wins and lists of losses for optimization **<-- Doing this later**
 - Things to analyze:
     - [x] Calculate every comp played against
-    - [ ] Rating difference
+    - [x] Rating difference
+    - [ ] Winrate
     - [ ] Best winrate vs comp
     - [ ] Worst winrate vs comp
     - [ ] Most often played against
