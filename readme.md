@@ -12,15 +12,15 @@
 - Things to analyze:
     - [x] Calculate every comp played against
     - [x] Rating difference
-    - [ ] Winrate
+    - [x] Winrate
     - [ ] Best winrate vs comp
     - [ ] Worst winrate vs comp
     - [ ] Most often played against
-    - [ ] Chart rating diff?
+    - [ ] Chart rating diff? requires plotting *sigh*
     - [ ] Maps with best winrate?
     - [ ] Game frequency?
     - [ ] How much rating lost / gained vs comps
-    - [ ] Average game time
+    - [x] Average game time
     - [ ] Game time vs different comps
     - [ ] Highest rating / mmr
 - [ ] User experience

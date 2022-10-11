@@ -1,5 +1,7 @@
+use chrono::Duration;
 use log::Level::{Debug, Trace, Warn};
 use log::{debug, log_enabled, trace, warn};
+use percentage::{Percentage, PercentageInteger};
 
 use crate::game::{Game, GameType};
 use crate::team::Comp;
@@ -7,9 +9,13 @@ use std::collections::HashMap;
 
 pub fn start(games: Vec<Game>) -> bool {
     generate_teamcomp_buckets(&games);
+    //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(&games);
+    calculate_winrate(&games);
+    calculate_average_gametime(&games);
     true
 }
+
 #[allow(clippy::type_complexity)]
 pub fn generate_teamcomp_buckets(
     games: &[Game],
@@ -63,6 +69,37 @@ pub fn calculate_rating_change(games: &[Game]) -> (i32, i32) {
     }
     debug!("2v2: {:?}, 3v3: {:?}", twos_rating, threes_rating);
     (twos_rating, threes_rating)
+}
+
+fn calculate_winrate(games: &[Game]) -> PercentageInteger {
+    let mut wins = 0;
+    for game in games.iter() {
+        if game.victory {
+            wins += 1;
+        }
+    }
+    let winrate = Percentage::from_decimal(wins as f64 / games.len() as f64);
+    debug!(
+        "Games won: {}, Games lost: {}, winrate: {:.2}",
+        wins,
+        games.len() - wins,
+        winrate.value()
+    );
+    Percentage::from(wins / games.len())
+}
+
+fn calculate_average_gametime(games: &[Game]) -> Duration {
+    let mut total_duration = Duration::seconds(0);
+    for game in games.iter() {
+        total_duration = total_duration + game.duration;
+    }
+    let average_duration = total_duration / games.len() as i32;
+    debug!(
+        "Average game time: {} minutes, {} seconds",
+        average_duration.num_minutes(),
+        average_duration.num_seconds() % 60
+    );
+    average_duration
 }
 
 fn log_player_missing(game: &Game) {
