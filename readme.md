@@ -7,10 +7,9 @@
         - [x] Parse player names and class into Player struct
 - [x] Have list of Games
 - [x] Identify the different team compositions
-- [ ] **Need to refactor ^ to be able to do this** Identify every game with the same team comps on both enemy team or friendly team
-- [ ] 
-- [ ] Make lists of wins and lists of losses for optimization
-- [ ] Things to analyze
+- [x] Identify every game with the same team comps on both enemy team or friendly team
+- [ ] Make lists of wins and lists of losses for optimization **<-- Doing this later**
+- Things to analyze:
     - [x] Calculate every comp played against
     - [ ] Rating difference
     - [ ] Best winrate vs comp

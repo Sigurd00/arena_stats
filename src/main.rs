@@ -4,7 +4,7 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::process;
 
-use arena_stats::game::{generate_teamcomp_buckets, print_all_comps, Game};
+use arena_stats::{analyser, game::Game};
 use log::{log_enabled, trace, Level};
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -23,10 +23,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
         games.push(game);
     }
-    let (friendly_comps, enemy_comps) = generate_teamcomp_buckets(games);
-    print_all_comps(friendly_comps);
-    print_all_comps(enemy_comps);
-
+    analyser::start(games);
     Ok(())
 }
 

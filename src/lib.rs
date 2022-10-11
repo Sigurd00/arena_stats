@@ -1,3 +1,4 @@
+pub mod analyser;
 pub mod class;
 pub mod game;
 pub mod parser;

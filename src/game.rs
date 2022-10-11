@@ -1,9 +1,10 @@
+use std::{fmt, i32};
+
 use chrono::{DateTime, Duration, Utc};
 use csv::StringRecord;
-use itertools::Itertools;
 
+use crate::team::Comp;
 use crate::{
-    class::Comp,
     parser::{self, parse_teams},
     team::Team,
 };
@@ -12,11 +13,37 @@ use crate::{
 pub enum GameMap {
     ALLMAPS, //TODO: Get a list of all arena maps
 }
+pub enum GameType {
+    Twos,
+    Threes,
+    Other,
+}
+
+impl GameType {
+    fn from_player_count(player_count: i32) -> Self {
+        match player_count {
+            4 => GameType::Twos,
+            6 => GameType::Threes,
+            _ => GameType::Other,
+        }
+    }
+}
+
+impl fmt::Debug for GameType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            GameType::Twos => write!(f, "GameType: [2v2]"),
+            GameType::Threes => write!(f, "GameType: [3v3]"),
+            GameType::Other => write!(f, "Yikes, someone left this game"),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Game {
     pub timestamp: DateTime<Utc>,
     pub map: GameMap,
+    pub game_type: GameType,
     pub friendly_team: Team,
     pub enemy_team: Team,
     pub duration: Duration,
@@ -42,6 +69,7 @@ impl Game {
             map: GameMap::ALLMAPS,
             friendly_team,
             enemy_team,
+            game_type: GameType::from_player_count(record[2].parse::<i32>().unwrap()),
             duration: Duration::seconds(record[5].parse::<i64>().unwrap()),
             victory: matches!(&record[6], "true"),
             killing_blows: record[7].parse::<i32>().unwrap(),
@@ -52,25 +80,6 @@ impl Game {
             is_rated: matches!(&record[15], "true"),
         }
     }
-}
-
-pub fn generate_teamcomp_buckets(games: Vec<Game>) -> (Vec<Comp>, Vec<Comp>) {
-    let mut friendly_comps: Vec<Comp> = vec![]; //TODO: Figure out how we connect the friendly_comps games with the correct enemy_comps games
-    let mut enemy_comps: Vec<Comp> = vec![];
-    for game in games {
-        let mut comp = Comp::new();
-        for player in game.friendly_team.players {
-            comp.add_class(player.class);
-        }
-        friendly_comps.push(comp);
-        let mut comp = Comp::new();
-        for player in game.enemy_team.players {
-            comp.add_class(player.class);
-        }
-        enemy_comps.push(comp);
-    }
-    friendly_comps = friendly_comps.into_iter().unique().collect();
-    (friendly_comps, enemy_comps)
 }
 
 pub fn print_all_comps(comps: Vec<Comp>) {

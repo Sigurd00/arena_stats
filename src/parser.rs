@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
-use log::debug;
+use log::trace;
 
 use crate::{
     class::Class,
@@ -23,14 +23,14 @@ pub fn parse_teams(
     friendly_team_mmr: String,
     enemy_team_mmr: String,
 ) -> (Team, Team) {
-    let friendly_team = Team {
-        players: prase_players(friendly_team),
-        mmr: friendly_team_mmr.parse::<i32>().unwrap(),
-    };
-    let enemy_team = Team {
-        players: prase_players(enemy_team),
-        mmr: enemy_team_mmr.parse::<i32>().unwrap(),
-    };
+    let friendly_team = Team::new(
+        prase_players(friendly_team),
+        friendly_team_mmr.parse::<i32>().unwrap(),
+    );
+    let enemy_team = Team::new(
+        prase_players(enemy_team),
+        enemy_team_mmr.parse::<i32>().unwrap(),
+    );
     (friendly_team, enemy_team)
 }
 
@@ -41,7 +41,7 @@ pub fn prase_players(team_string: String) -> Vec<Player> {
     for player in player_strings {
         players.push(parse_player(player));
     }
-    debug!("Found players: {:?} ", players);
+    trace!("Found players: {:?} ", players);
     players
 }
 
