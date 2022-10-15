@@ -3,16 +3,21 @@ use log::Level::{Debug, Trace, Warn};
 use log::{debug, log_enabled, trace, warn};
 use percentage::{Percentage, PercentageInteger};
 
-use crate::game::{Game, GameType};
+use crate::game::{self, Game, GameType};
 use crate::team::Comp;
 use std::collections::HashMap;
 
+const COMP_THRESHOLD: usize = 2;
+
 pub fn start(games: &Vec<Game>) -> bool {
-    generate_teamcomp_buckets(games);
+    let (mut friendly_comps, mut enemy_comps) = generate_teamcomp_buckets(games);
     //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(games);
     calculate_winrate(games);
-    calculate_average_gametime(games);
+    calculate_average_overall_gametime(games);
+    for (comp, games) in friendly_comps.iter() {
+        calculate_average_compbucket_gametime(*comp, games);
+    }
     true
 }
 
@@ -32,11 +37,21 @@ pub fn generate_teamcomp_buckets(
             .or_insert_with(|| vec![game])
             .push(game);
     }
+    debug!(
+        "total comps before prune: {:?}",
+        friendly_team_comps.len() + enemy_team_comps.len()
+    );
+    friendly_team_comps.retain(|_, v| v.len() >= COMP_THRESHOLD);
+    enemy_team_comps.retain(|_, v| v.len() >= COMP_THRESHOLD);
     if log_enabled!(Debug) {
         debug!("Printing all the unique comps!");
         for (comp, _game) in friendly_team_comps.iter() {
             debug!("{:?}", comp);
         }
+        debug!(
+            "total comps after prune: {:?}",
+            friendly_team_comps.iter().len() + enemy_team_comps.iter().len()
+        );
         debug!("Done printing unique comps!");
     }
     (friendly_team_comps, enemy_team_comps)
@@ -88,7 +103,7 @@ fn calculate_winrate(games: &[Game]) -> PercentageInteger {
     Percentage::from(wins / games.len())
 }
 
-fn calculate_average_gametime(games: &[Game]) -> Duration {
+fn calculate_average_overall_gametime(games: &[Game]) -> Duration {
     let mut total_duration = Duration::seconds(0);
     for game in games.iter() {
         total_duration = total_duration + game.duration;
@@ -96,6 +111,21 @@ fn calculate_average_gametime(games: &[Game]) -> Duration {
     let average_duration = total_duration / games.len() as i32;
     debug!(
         "Average game time: {} minutes, {} seconds",
+        average_duration.num_minutes(),
+        average_duration.num_seconds() % 60
+    );
+    average_duration
+}
+
+fn calculate_average_compbucket_gametime(comp: &Comp, games: &[&Game]) -> Duration {
+    let mut total_duration = Duration::seconds(0);
+    for game in games.iter() {
+        total_duration = total_duration + game.duration;
+    }
+    let average_duration = total_duration / games.len() as i32;
+    debug!(
+        "Average game time for Friendly comp: {:?} {} minutes, {} seconds",
+        comp,
         average_duration.num_minutes(),
         average_duration.num_seconds() % 60
     );

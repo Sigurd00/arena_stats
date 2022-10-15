@@ -9,6 +9,7 @@
 - [x] Identify the different team compositions
 - [x] Identify every game with the same team comps on both enemy team or friendly team
 - [ ] Make lists of wins and lists of losses for optimization **<-- Doing this later**
+- [ ] Create a GameBucket struct
 - Things to analyze:
     - [x] Calculate every comp played against
     - [x] Rating difference
@@ -21,7 +22,7 @@
     - [ ] Game frequency?
     - [ ] How much rating lost / gained vs comps
     - [x] Average game time
-    - [ ] Game time vs different comps
+    - [x] Game time vs different comps
     - [ ] Highest rating / mmr
 - [ ] User experience
     - [ ] Show list of commands on startup?

@@ -7,7 +7,7 @@ use arena_stats::analyser;
 use arena_stats::parser;
 
 fn main() {
-    env::set_var("RUST_LOG", "off");
+    env::set_var("RUST_LOG", "debug");
     env_logger::init();
 
     let file_path = match get_first_arg() {
