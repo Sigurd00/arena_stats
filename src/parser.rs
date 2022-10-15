@@ -1,13 +1,32 @@
-use std::str::FromStr;
+use std::{error::Error, ffi::OsString, fs::File, str::FromStr};
 
 use chrono::{DateTime, NaiveDateTime, Utc};
-use log::trace;
+use log::{log_enabled, trace, Level};
 
 use crate::{
     class::Class,
+    game::Game,
     player::{Player, Realm},
     team::Team,
 };
+
+pub fn parse_games(file_path: OsString) -> Result<Vec<Game>, Box<dyn Error>> {
+    let file = File::open(file_path)?;
+    let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
+    let mut games: Vec<Game> = vec![];
+    for result in rdr.records() {
+        let record = result?;
+        if log_enabled!(Level::Trace) {
+            trace!("Record: {:?}", record);
+        }
+        let game = Game::new(record);
+        if log_enabled!(Level::Trace) {
+            trace!("Game: {:?}", game);
+        }
+        games.push(game);
+    }
+    Ok(games)
+}
 
 pub fn parse_timestamp(timestamp: &str) -> DateTime<Utc> {
     let timestamp = timestamp.parse::<i64>().unwrap();
