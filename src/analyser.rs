@@ -3,7 +3,7 @@ use log::Level::{Debug, Trace, Warn};
 use log::{debug, log_enabled, trace, warn};
 use percentage::{Percentage, PercentageInteger};
 
-use crate::game::{self, Game, GameType};
+use crate::game::{Game, GameType};
 use crate::team::Comp;
 use std::collections::HashMap;
 
@@ -13,7 +13,6 @@ pub fn start(games: &Vec<Game>) -> bool {
     let (mut friendly_comps, mut enemy_comps) = generate_teamcomp_buckets(games);
     //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(games);
-    calculate_winrate(games);
     calculate_average_overall_gametime(games);
     for (comp, games) in friendly_comps.iter() {
         calculate_average_compbucket_gametime(*comp, games);
@@ -46,6 +45,9 @@ pub fn generate_teamcomp_buckets(
     if log_enabled!(Debug) {
         debug!("Printing all the unique comps!");
         for (comp, _game) in friendly_team_comps.iter() {
+            debug!("{:?}", comp);
+        }
+        for (comp, _game) in enemy_team_comps.iter() {
             debug!("{:?}", comp);
         }
         debug!(
@@ -86,23 +88,6 @@ pub fn calculate_rating_change(games: &[Game]) -> (i32, i32) {
     (twos_rating, threes_rating)
 }
 
-fn calculate_winrate(games: &[Game]) -> PercentageInteger {
-    let mut wins = 0;
-    for game in games.iter() {
-        if game.victory {
-            wins += 1;
-        }
-    }
-    let winrate = Percentage::from_decimal(wins as f64 / games.len() as f64);
-    debug!(
-        "Games won: {}, Games lost: {}, winrate: {:.2}",
-        wins,
-        games.len() - wins,
-        winrate.value()
-    );
-    Percentage::from(wins / games.len())
-}
-
 fn calculate_average_overall_gametime(games: &[Game]) -> Duration {
     let mut total_duration = Duration::seconds(0);
     for game in games.iter() {
@@ -124,7 +109,7 @@ fn calculate_average_compbucket_gametime(comp: &Comp, games: &[&Game]) -> Durati
     }
     let average_duration = total_duration / games.len() as i32;
     debug!(
-        "Average game time for Friendly comp: {:?} {} minutes, {} seconds",
+        "Average game time for comp: {:?} {} minutes, {} seconds",
         comp,
         average_duration.num_minutes(),
         average_duration.num_seconds() % 60
