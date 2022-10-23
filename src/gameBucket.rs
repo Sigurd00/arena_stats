@@ -1,23 +1,45 @@
+use std::{collections::btree_map::Iter, mem::take, marker::PhantomData};
+
 use log::debug;
 use percentage::{Percentage, PercentageInteger};
 
-use crate::{game::Game, team::Comp};
+use crate::{team::Comp, game::Game};
 
 pub struct GameBucket<'a> {
-    pub comp: Comp,
-    pub games: &'a Vec<Game>,
+    comp: Comp,
+    games: Vec<&'a Game>,
     pub len: usize,
     pub winrate: PercentageInteger,
 }
 
-impl<'a> GameBucket<'a> {
-    fn new(comp: Comp, games: &'a Vec<Game>) -> Self {
+impl GameBucket<'_> {
+    fn new(comp: Comp) -> Self {
         Self {
             len: games.len(),
             comp,
-            games,
             winrate: calculate_winrate(&games),
+            games,
         }
+    }
+
+    pub fn comp(&self) -> &Comp {
+        &self.comp
+    }
+
+    pub fn games(&self) -> &Vec<Game> {
+        self.games.as_ref()
+    }
+
+    pub fn add(&mut self, game:Game) {
+        self.games.push(game);
+    }
+}
+
+impl<'a> Iterator for GameBucket<'a> {
+    type Item = &'a Game;
+
+    fn next(&mut self) -> Option<&'a Game> {
+        self.games.iter().next()
     }
 }
 
