@@ -1,24 +1,26 @@
-use std::{collections::btree_map::Iter, mem::take, marker::PhantomData};
-
 use log::debug;
 use percentage::{Percentage, PercentageInteger};
 
-use crate::{team::Comp, game::Game};
+use crate::{game::Game, team::Comp};
 
-pub struct GameBucket<'a> {
+pub struct GameBucket {
     comp: Comp,
-    games: Vec<&'a Game>,
-    pub len: usize,
-    pub winrate: PercentageInteger,
+    games: Vec<Game>,
+    wins: usize,
+    losses: usize,
+    len: usize,
+    winrate: PercentageInteger,
 }
 
-impl GameBucket<'_> {
+impl GameBucket {
     fn new(comp: Comp) -> Self {
         Self {
-            len: games.len(),
             comp,
-            winrate: calculate_winrate(&games),
-            games,
+            games: vec![],
+            wins: 0,
+            losses: 0,
+            len: 0,
+            winrate: Percentage::from(0),
         }
     }
 
@@ -30,16 +32,34 @@ impl GameBucket<'_> {
         self.games.as_ref()
     }
 
-    pub fn add(&mut self, game:Game) {
+    pub fn add(&mut self, game: Game) {
         self.games.push(game);
+    }
+
+    pub fn wins(&self) -> usize {
+        self.wins
+    }
+
+    pub fn losses(&self) -> usize {
+        self.losses
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    pub fn winrate(&self) -> &PercentageInteger {
+        &self.winrate
     }
 }
 
-impl<'a> Iterator for GameBucket<'a> {
-    type Item = &'a Game;
+impl<'a> IntoIterator for GameBucket {
+    type Item = Game;
 
-    fn next(&mut self) -> Option<&'a Game> {
-        self.games.iter().next()
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.games.into_iter()
     }
 }
 
