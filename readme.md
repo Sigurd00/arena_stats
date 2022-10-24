@@ -1,15 +1,7 @@
 # Todo List
-- [x] Create Game objects from CSV file.
-    - [x] Read a CSV file.
-    - [x] Setup initial structure of model
-    - [x] Convert records into list of Game objects
-    - [x] Parse timestamp into DateTime 
-        - [x] Parse player names and class into Player struct
-- [x] Have list of Games
-- [x] Identify the different team compositions
-- [x] Identify every game with the same team comps on both enemy team or friendly team
 - [ ] Make lists of wins and lists of losses for optimization **<-- Doing this later**
-- [ ] Create a GameBucket struct
+- [x] Create a GameBucket struct
+- [ ] Put every game into its gamebucket effeciently. Maybe when the games are being parsed?
 - Things to analyze:
     - [x] Calculate every comp played against
     - [x] Rating difference
