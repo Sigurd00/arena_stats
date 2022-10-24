@@ -1,7 +1,6 @@
 use chrono::Duration;
 use log::Level::{Debug, Trace, Warn};
 use log::{debug, log_enabled, trace, warn};
-use percentage::{Percentage, PercentageInteger};
 
 use crate::game::{Game, GameType};
 use crate::team::Comp;
@@ -9,12 +8,15 @@ use std::collections::HashMap;
 
 const COMP_THRESHOLD: usize = 2;
 
-pub fn start(games: &Vec<Game>) -> bool {
-    let (mut friendly_comps, mut enemy_comps) = generate_teamcomp_buckets(games);
+pub fn start(games: &[Game]) -> bool {
+    let (friendly_comps, enemy_comps) = generate_teamcomp_buckets(games);
     //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(games);
     calculate_average_overall_gametime(games);
     for (comp, games) in friendly_comps.iter() {
+        calculate_average_compbucket_gametime(*comp, games);
+    }
+    for (comp, games) in enemy_comps.iter() {
         calculate_average_compbucket_gametime(*comp, games);
     }
     true

@@ -48,12 +48,17 @@ impl GameBucket {
         self.len
     }
 
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn winrate(&self) -> &PercentageInteger {
         &self.winrate
     }
 }
 
-impl<'a> IntoIterator for GameBucket {
+impl IntoIterator for GameBucket {
     type Item = Game;
 
     type IntoIter = std::vec::IntoIter<Self::Item>;
