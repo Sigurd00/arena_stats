@@ -1,19 +1,24 @@
+
+use std::collections::HashMap;
+
 use log::debug;
 use percentage::{Percentage, PercentageInteger};
 
 use crate::{game::Game, team::Comp};
 
-pub struct GameBucket {
-    comp: Comp,
-    games: Vec<Game>,
+pub type GameBuckets<'a> = HashMap<&'a Comp, GameBucket<'a>>;
+
+pub struct GameBucket<'a> {
+    comp: &'a Comp,
+    games: Vec<&'a Game>,
     wins: usize,
     losses: usize,
     len: usize,
     winrate: PercentageInteger,
 }
 
-impl GameBucket {
-    fn new(comp: Comp) -> Self {
+impl<'a> GameBucket<'a> {
+    pub fn new(comp: &'a Comp) -> Self {
         Self {
             comp,
             games: vec![],
@@ -28,11 +33,11 @@ impl GameBucket {
         &self.comp
     }
 
-    pub fn games(&self) -> &Vec<Game> {
+    pub fn games(&self) -> &Vec<&Game> {
         self.games.as_ref()
     }
 
-    pub fn add(&mut self, game: Game) {
+    pub fn add(&mut self, game: &'a Game) {
         self.games.push(game);
     }
 
@@ -58,15 +63,6 @@ impl GameBucket {
     }
 }
 
-impl IntoIterator for GameBucket {
-    type Item = Game;
-
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.games.into_iter()
-    }
-}
 
 pub fn calculate_winrate(games: &[Game]) -> PercentageInteger {
     let mut wins = 0;

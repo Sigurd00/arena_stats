@@ -3,6 +3,7 @@ use log::Level::{Debug, Trace, Warn};
 use log::{debug, log_enabled, trace, warn};
 
 use crate::game::{Game, GameType};
+use crate::game_bucket::{GameBuckets, GameBucket};
 use crate::team::Comp;
 use std::collections::HashMap;
 
@@ -13,30 +14,30 @@ pub fn start(games: &[Game]) -> bool {
     //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(games);
     calculate_average_overall_gametime(games);
-    for (comp, games) in friendly_comps.iter() {
+    /* for (comp, games) in friendly_comps.iter() {
         calculate_average_compbucket_gametime(*comp, games);
     }
     for (comp, games) in enemy_comps.iter() {
         calculate_average_compbucket_gametime(*comp, games);
-    }
+    } */
     true
 }
 
 #[allow(clippy::type_complexity)]
 pub fn generate_teamcomp_buckets(
     games: &[Game],
-) -> (HashMap<&Comp, Vec<&Game>>, HashMap<&Comp, Vec<&Game>>) {
-    let mut friendly_team_comps: HashMap<&Comp, Vec<&Game>> = HashMap::new();
-    let mut enemy_team_comps: HashMap<&Comp, Vec<&Game>> = HashMap::new();
+) -> (GameBuckets, GameBuckets) {
+    let mut friendly_team_comps: GameBuckets = HashMap::new();
+    let mut enemy_team_comps: GameBuckets = HashMap::new();
     for game in games.iter() {
         friendly_team_comps
             .entry(&game.friendly_team.comp)
-            .or_insert_with(|| vec![game])
-            .push(game);
-        enemy_team_comps
+            .or_insert_with(|| GameBucket::new(&game.friendly_team.comp))
+            .add(game);
+        friendly_team_comps
             .entry(&game.enemy_team.comp)
-            .or_insert_with(|| vec![game])
-            .push(game);
+            .or_insert_with(|| GameBucket::new(&game.enemy_team.comp))
+            .add(game);
     }
     debug!(
         "total comps before prune: {:?}",
