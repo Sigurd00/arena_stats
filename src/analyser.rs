@@ -1,32 +1,37 @@
 use chrono::Duration;
 use log::Level::{Debug, Trace, Warn};
 use log::{debug, log_enabled, trace, warn};
+use percentage::{PercentageInteger, Percentage};
 
 use crate::game::{Game, GameType};
-use crate::game_bucket::{GameBuckets, GameBucket};
-use crate::team::Comp;
+use crate::game_bucket::{GameBucket, GameBuckets};
 use std::collections::HashMap;
 
-const COMP_THRESHOLD: usize = 2;
+const COMP_THRESHOLD: usize = 20;
+
+//TODO: Find a better way to do this. ie "game bucket is slice for all games"
+/// Used for functions that either use all the games or use game buckets.
+enum Games<'a> {
+    AllGames(&'a [Game]),
+    GameBucket(&'a GameBucket<'a>),
+}
 
 pub fn start(games: &[Game]) -> bool {
-    let (friendly_comps, enemy_comps) = generate_teamcomp_buckets(games);
+    let (friendly_comps, enemy_comps) = put_games_into_buckets(games);
     //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(games);
-    calculate_average_overall_gametime(games);
-    /* for (comp, games) in friendly_comps.iter() {
-        calculate_average_compbucket_gametime(*comp, games);
+    calculate_average_gametime(Games::AllGames(games));
+    for (_comp, games) in friendly_comps.iter() {
+        calculate_average_gametime(Games::GameBucket(games));
     }
-    for (comp, games) in enemy_comps.iter() {
-        calculate_average_compbucket_gametime(*comp, games);
-    } */
+    for (_comp, games) in enemy_comps.iter() {
+        calculate_average_gametime(Games::GameBucket(games));
+    }
     true
 }
 
 #[allow(clippy::type_complexity)]
-pub fn generate_teamcomp_buckets(
-    games: &[Game],
-) -> (GameBuckets, GameBuckets) {
+pub fn put_games_into_buckets(games: &[Game]) -> (GameBuckets, GameBuckets) {
     let mut friendly_team_comps: GameBuckets = HashMap::new();
     let mut enemy_team_comps: GameBuckets = HashMap::new();
     for game in games.iter() {
@@ -91,34 +96,49 @@ pub fn calculate_rating_change(games: &[Game]) -> (i32, i32) {
     (twos_rating, threes_rating)
 }
 
-fn calculate_average_overall_gametime(games: &[Game]) -> Duration {
+fn calculate_average_gametime(game_bucket: Games) -> Duration {
     let mut total_duration = Duration::seconds(0);
-    for game in games.iter() {
-        total_duration = total_duration + game.duration;
+    let total_games: i32;
+    match game_bucket {
+        Games::AllGames(games) => {
+            for game in games.iter() {
+                total_duration = total_duration + game.duration;
+            }
+            total_games = games.len() as i32;
+        }
+        Games::GameBucket(game_bucket) => {
+            for game in game_bucket.games().iter() {
+                total_duration = total_duration + game.duration;
+            }
+            total_games = game_bucket.len() as i32;
+        }
     }
-    let average_duration = total_duration / games.len() as i32;
+    let average_duration = total_duration / total_games;
     debug!(
-        "Average game time: {} minutes, {} seconds",
+        "{} minutes, {} seconds",
         average_duration.num_minutes(),
         average_duration.num_seconds() % 60
     );
     average_duration
 }
 
-fn calculate_average_compbucket_gametime(comp: &Comp, games: &[&Game]) -> Duration {
-    let mut total_duration = Duration::seconds(0);
+pub fn calculate_winrate(games: &[Game]) -> PercentageInteger {
+    let mut wins = 0;
     for game in games.iter() {
-        total_duration = total_duration + game.duration;
+        if game.victory {
+            wins += 1;
+        }
     }
-    let average_duration = total_duration / games.len() as i32;
+    let winrate = Percentage::from_decimal(wins as f64 / games.len() as f64);
     debug!(
-        "Average game time for comp: {:?} {} minutes, {} seconds",
-        comp,
-        average_duration.num_minutes(),
-        average_duration.num_seconds() % 60
+        "Games won: {}, Games lost: {}, winrate: {:.2}",
+        wins,
+        games.len() - wins,
+        winrate.value()
     );
-    average_duration
+    Percentage::from(wins / games.len())
 }
+
 
 fn log_player_missing(game: &Game) {
     if game.friendly_team.players.len() < game.enemy_team.players.len() {

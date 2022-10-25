@@ -1,7 +1,5 @@
-
 use std::collections::HashMap;
 
-use log::debug;
 use percentage::{Percentage, PercentageInteger};
 
 use crate::{game::Game, team::Comp};
@@ -30,15 +28,16 @@ impl<'a> GameBucket<'a> {
     }
 
     pub fn comp(&self) -> &Comp {
-        &self.comp
+        self.comp
     }
 
-    pub fn games(&self) -> &Vec<&Game> {
-        self.games.as_ref()
+    pub fn games(&self) -> &[&Game] {
+        self.games.as_slice()
     }
 
     pub fn add(&mut self, game: &'a Game) {
         self.games.push(game);
+        self.len = self.games.len();
     }
 
     pub fn wins(&self) -> usize {
@@ -61,22 +60,4 @@ impl<'a> GameBucket<'a> {
     pub fn winrate(&self) -> &PercentageInteger {
         &self.winrate
     }
-}
-
-
-pub fn calculate_winrate(games: &[Game]) -> PercentageInteger {
-    let mut wins = 0;
-    for game in games.iter() {
-        if game.victory {
-            wins += 1;
-        }
-    }
-    let winrate = Percentage::from_decimal(wins as f64 / games.len() as f64);
-    debug!(
-        "Games won: {}, Games lost: {}, winrate: {:.2}",
-        wins,
-        games.len() - wins,
-        winrate.value()
-    );
-    Percentage::from(wins / games.len())
 }
