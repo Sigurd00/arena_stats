@@ -1,7 +1,7 @@
 use chrono::Duration;
 use log::Level::{Debug, Trace, Warn};
 use log::{debug, log_enabled, trace, warn};
-use percentage::{PercentageInteger, Percentage};
+use percentage::{Percentage, PercentageInteger};
 
 use crate::game::{Game, GameType};
 use crate::game_bucket::{GameBucket, GameBuckets};
@@ -138,7 +138,6 @@ pub fn calculate_winrate(games: &[Game]) -> PercentageInteger {
     );
     Percentage::from(wins / games.len())
 }
-
 
 fn log_player_missing(game: &Game) {
     if game.friendly_team.players.len() < game.enemy_team.players.len() {
