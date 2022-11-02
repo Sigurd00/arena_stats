@@ -1,11 +1,12 @@
 use chrono::Duration;
-use log::Level::{Debug, Trace, Warn};
-use log::{debug, log_enabled, trace, warn};
-use percentage::{Percentage, PercentageInteger};
+use log::Level::{Debug, Trace};
+use log::{debug, log_enabled, trace, warn, info};
+use pad::PadStr;
 
 use crate::game::{Game, GameType};
 use crate::game_bucket::{GameBucket, GameBuckets};
-use std::collections::HashMap;
+use crate::team::Comp;
+use std::collections::BTreeMap;
 
 const COMP_THRESHOLD: usize = 20;
 
@@ -17,29 +18,38 @@ enum Games<'a> {
 }
 
 pub fn start(games: &[Game]) -> bool {
-    let (friendly_comps, enemy_comps) = put_games_into_buckets(games);
+    let (mut friendly_comps, mut enemy_comps) = put_games_into_buckets(games);
     //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(games);
     calculate_average_gametime(Games::AllGames(games));
-    for (_comp, games) in friendly_comps.iter() {
-        calculate_average_gametime(Games::GameBucket(games));
+    debug!("{:?}, {:?}", friendly_comps.len(), enemy_comps.len());
+    for (comp, games) in enemy_comps.iter_mut() {
+        let duration = calculate_average_gametime(Games::GameBucket(games));
+        debug!(
+            "Comp: {} - Average Duration: {} Minutes, {} Seconds - PlayCount: {}, Winrate: {:.2}",
+            comp.to_string().pad_to_width(25),
+            duration.num_minutes(),
+            duration.num_seconds() / 60,
+            games.len(),
+            games.winrate().value(),
+        )
     }
-    for (_comp, games) in enemy_comps.iter() {
+    /* for (_comp, games) in enemy_comps.iter() {
         calculate_average_gametime(Games::GameBucket(games));
-    }
+    } */
     true
 }
 
 #[allow(clippy::type_complexity)]
 pub fn put_games_into_buckets(games: &[Game]) -> (GameBuckets, GameBuckets) {
-    let mut friendly_team_comps: GameBuckets = HashMap::new();
-    let mut enemy_team_comps: GameBuckets = HashMap::new();
+    let mut friendly_team_comps: GameBuckets = BTreeMap::new();
+    let mut enemy_team_comps: GameBuckets = BTreeMap::new();
     for game in games.iter() {
         friendly_team_comps
             .entry(&game.friendly_team.comp)
             .or_insert_with(|| GameBucket::new(&game.friendly_team.comp))
             .add(game);
-        friendly_team_comps
+        enemy_team_comps
             .entry(&game.enemy_team.comp)
             .or_insert_with(|| GameBucket::new(&game.enemy_team.comp))
             .add(game);
@@ -80,9 +90,7 @@ pub fn calculate_rating_change(games: &[Game]) -> (i32, i32) {
                 GameType::Twos => twos_rating += game.rating_change,
                 GameType::Threes => threes_rating += game.rating_change,
                 GameType::Other => {
-                    if log_enabled!(Warn) {
-                        log_player_missing(game);
-                    }
+                    warn!("A game that is missing is included in the calculations, maybe have a look into this!");
                     if game.friendly_team.players.len() == 3 || game.enemy_team.players.len() == 3 {
                         threes_rating += game.rating_change;
                     } else {
@@ -122,33 +130,10 @@ fn calculate_average_gametime(game_bucket: Games) -> Duration {
     average_duration
 }
 
-pub fn calculate_winrate(games: &[Game]) -> PercentageInteger {
-    let mut wins = 0;
-    for game in games.iter() {
-        if game.victory {
-            wins += 1;
-        }
-    }
-    let winrate = Percentage::from_decimal(wins as f64 / games.len() as f64);
-    debug!(
-        "Games won: {}, Games lost: {}, winrate: {:.2}",
-        wins,
-        games.len() - wins,
-        winrate.value()
-    );
-    Percentage::from(wins / games.len())
-}
-
-fn log_player_missing(game: &Game) {
-    if game.friendly_team.players.len() < game.enemy_team.players.len() {
-        warn!(
-            "Someone on your team left the game, player(s) found in the game: {:?} ",
-            game.friendly_team.players
-        )
-    } else {
-        warn!(
-            "Someone on the enemy team left, player(s) found in the game: {:?} ",
-            game.enemy_team.players
-        )
+fn most_common_team(game_buckets: BTreeMap<Comp, GameBucket>, count: usize) {
+    assert!(count <= game_buckets.len());
+    let mut n_most_common: Vec<&GameBucket> = vec![];
+    for (comp, games) in game_buckets {
+        //TODO: implement binary heap for that sweet O(n log k) complexity
     }
 }

@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::class::Class;
 use crate::player::Player;
 
@@ -18,10 +20,16 @@ impl Team {
     }
 }
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+#[derive(Clone, Eq, Hash, PartialEq, Debug, PartialOrd, Ord)]
 pub struct Comp {
     size: i32,
     team_classes: Vec<Class>,
+}
+
+impl fmt::Display for Comp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.team_classes)
+    }
 }
 
 impl Comp {

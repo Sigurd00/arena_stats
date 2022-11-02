@@ -1,11 +1,11 @@
 use std::{error::Error, ffi::OsString, fs::File, str::FromStr};
 
 use chrono::{DateTime, NaiveDateTime, Utc};
-use log::{log_enabled, trace, Level};
+use log::{debug, log_enabled, trace, warn, Level};
 
 use crate::{
     class::Class,
-    game::Game,
+    game::{Game, GameType},
     player::{Player, Realm},
     team::Team,
 };
@@ -23,8 +23,14 @@ pub fn parse_games(file_path: OsString) -> Result<Vec<Game>, Box<dyn Error>> {
         if log_enabled!(Level::Trace) {
             trace!("Game: {:?}", game);
         }
-        games.push(game);
+        //TODO: Maybe do something with the games that are being thrown away?
+        if let GameType::Other = game.game_type {
+            log_player_missing(&game);
+        } else {
+            games.push(game);
+        }
     }
+    debug!("Total games: {}\n", games.len());
     Ok(games)
 }
 
@@ -76,4 +82,18 @@ fn parse_player(player_string: &str) -> Player {
 
 fn parse_potential_realm(maybe_realm: Option<&str>) -> Option<Realm> {
     maybe_realm.map(|_realm| Realm::Draenor)
+}
+
+fn log_player_missing(game: &Game) {
+    if game.friendly_team.players.len() < game.enemy_team.players.len() {
+        warn!(
+            "Someone on your team left the game, player(s) found in the game: {:?}, game has been deleted",
+            game.friendly_team.players
+        )
+    } else {
+        warn!(
+            "Someone on the enemy team left, player(s) found in the game: {:?}, game has been deleted",
+            game.enemy_team.players
+        )
+    }
 }

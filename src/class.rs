@@ -1,6 +1,6 @@
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
-#[derive(Debug, Clone, Eq, Hash, PartialEq, Copy)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq, Copy, PartialOrd, Ord)]
 pub enum Class {
     Warrior,
     Hunter,
@@ -14,6 +14,25 @@ pub enum Class {
     Druid,
     DemonHunter,
     DeathKnight,
+}
+
+impl fmt::Display for Class {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Class::Warrior => write!(f, "Warrior"),
+            Class::Hunter => write!(f, "Hunter"),
+            Class::Paladin => write!(f, "Paladin"),
+            Class::Priest => write!(f, "Priest"),
+            Class::Rogue => write!(f, "Rogue"),
+            Class::Shaman => write!(f, "Shaman"),
+            Class::Warlock => write!(f, "Warlock"),
+            Class::Mage => write!(f, "Mage"),
+            Class::Monk => write!(f, "Monk"),
+            Class::Druid => write!(f, "Druid"),
+            Class::DemonHunter => write!(f, "Demon Hunter"),
+            Class::DeathKnight => write!(f, "Death Knight"),
+        }
+    }
 }
 
 impl FromStr for Class {

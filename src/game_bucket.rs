@@ -1,10 +1,12 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-use percentage::{Percentage, PercentageInteger};
+use log::Level::Debug;
+use log::{debug, log_enabled};
+use percentage::{Percentage, PercentageDecimal};
 
 use crate::{game::Game, team::Comp};
 
-pub type GameBuckets<'a> = HashMap<&'a Comp, GameBucket<'a>>;
+pub type GameBuckets<'a> = BTreeMap<&'a Comp, GameBucket<'a>>;
 
 pub struct GameBucket<'a> {
     comp: &'a Comp,
@@ -12,7 +14,8 @@ pub struct GameBucket<'a> {
     wins: usize,
     losses: usize,
     len: usize,
-    winrate: PercentageInteger,
+    winrate: PercentageDecimal,
+    should_update: bool,
 }
 
 impl<'a> GameBucket<'a> {
@@ -23,7 +26,8 @@ impl<'a> GameBucket<'a> {
             wins: 0,
             losses: 0,
             len: 0,
-            winrate: Percentage::from(0),
+            winrate: Percentage::from_decimal(0.0),
+            should_update: false,
         }
     }
 
@@ -38,6 +42,12 @@ impl<'a> GameBucket<'a> {
     pub fn add(&mut self, game: &'a Game) {
         self.games.push(game);
         self.len = self.games.len();
+        if game.victory {
+            self.wins += 1;
+        } else {
+            self.losses += 1;
+        }
+        self.should_update = true;
     }
 
     pub fn wins(&self) -> usize {
@@ -57,7 +67,23 @@ impl<'a> GameBucket<'a> {
         self.len() == 0
     }
 
-    pub fn winrate(&self) -> &PercentageInteger {
+    pub fn winrate(&mut self) -> &PercentageDecimal {
+        if self.should_update {
+            self.update();
+        }
         &self.winrate
+    }
+
+    fn update(&mut self) {
+        self.winrate = Percentage::from_decimal(self.wins as f64 / self.games.len() as f64);
+        if log_enabled!(Debug) {
+            debug!(
+                "Games won: {}, Games lost: {}, winrate: {:.2}",
+                self.wins,
+                self.len() - self.wins,
+                self.winrate.value()
+            );
+        }
+        self.should_update = false;
     }
 }
