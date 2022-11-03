@@ -1,12 +1,13 @@
 use chrono::Duration;
 use log::Level::{Debug, Trace};
-use log::{debug, log_enabled, trace, warn, info};
+use log::{debug, log_enabled, trace, warn};
 use pad::PadStr;
 
 use crate::game::{Game, GameType};
 use crate::game_bucket::{GameBucket, GameBuckets};
 use crate::team::Comp;
-use std::collections::BTreeMap;
+use std::cmp::Reverse;
+use std::collections::{BTreeMap, BinaryHeap};
 
 const COMP_THRESHOLD: usize = 20;
 
@@ -33,6 +34,11 @@ pub fn start(games: &[Game]) -> bool {
             games.len(),
             games.winrate().value(),
         )
+    }
+
+    let most_common = most_common_team(friendly_comps, 5);
+    for (comp, playcount) in most_common.iter() {
+        println!("{} - {}", comp, playcount);
     }
     /* for (_comp, games) in enemy_comps.iter() {
         calculate_average_gametime(Games::GameBucket(games));
@@ -130,10 +136,17 @@ fn calculate_average_gametime(game_bucket: Games) -> Duration {
     average_duration
 }
 
-fn most_common_team(game_buckets: BTreeMap<Comp, GameBucket>, count: usize) {
+fn most_common_team<'a>(
+    game_buckets: BTreeMap<&'a Comp, GameBucket>,
+    count: usize,
+) -> Vec<(&'a Comp, usize)> {
     assert!(count <= game_buckets.len());
-    let mut n_most_common: Vec<&GameBucket> = vec![];
-    for (comp, games) in game_buckets {
-        //TODO: implement binary heap for that sweet O(n log k) complexity
+    let mut heap = BinaryHeap::with_capacity(count + 1);
+    for (comp, game_bucket) in game_buckets.into_iter() {
+        heap.push(Reverse((comp, game_bucket.len())));
+        if heap.len() > count {
+            heap.pop();
+        }
     }
+    heap.into_sorted_vec().into_iter().map(|r| r.0).collect()
 }

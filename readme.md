@@ -1,7 +1,7 @@
 # Todo List
 - [ ] Make lists of wins and lists of losses for optimization **<-- Doing this later**
 - [x] Create a GameBucket struct
-- [z] Put every game into its gamebucket effeciently
+- [x] Put every game into its gamebucket effeciently
 - [ ] Make a game bucket where every game is also stored in
 - Things to analyze:
     - [x] Calculate every comp played against
