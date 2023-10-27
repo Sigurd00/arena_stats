@@ -1,4 +1,5 @@
 # Todo List
+!PRIO, look into changing from bucketing to clustering.
 - [ ] Make lists of wins and lists of losses for optimization **<-- Doing this later**
 - [x] Create a GameBucket struct
 - [x] Put every game into its gamebucket effeciently
