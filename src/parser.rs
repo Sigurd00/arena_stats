@@ -50,11 +50,15 @@ pub fn parse_teams(
 ) -> (Team, Team) {
     let friendly_team = Team::new(
         parse_players(friendly_team),
-    friendly_team_mmr.parse::<i32>().expect("Failed to parse friendly team mmr"),
+        friendly_team_mmr
+            .parse::<i32>()
+            .expect("Failed to parse friendly team mmr"),
     );
     let enemy_team = Team::new(
         parse_players(enemy_team),
-        enemy_team_mmr.parse::<i32>().expect("Failed to parse enemy team mmr"),
+        enemy_team_mmr
+            .parse::<i32>()
+            .expect("Failed to parse enemy team mmr"),
     );
     (friendly_team, enemy_team)
 }

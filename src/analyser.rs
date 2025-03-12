@@ -137,7 +137,8 @@ fn calculate_average_gametime(game_bucket: &Games) -> Duration {
 }
 
 fn most_common_team(game_buckets: HashMap<Comp, GameBucket>, count: usize) -> Vec<(Comp, usize)> {
-    let mut sorted: Vec<_> = game_buckets.into_iter()
+    let mut sorted: Vec<_> = game_buckets
+        .into_iter()
         .map(|(comp, bucket)| (comp, bucket.len()))
         .collect();
 

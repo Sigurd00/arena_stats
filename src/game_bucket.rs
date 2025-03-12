@@ -43,7 +43,7 @@ impl GameBucket {
         let victory = game.victory;
         self.games.push(game);
         self.len = self.games.len();
-        
+
         if victory {
             self.wins += 1;
         } else {
