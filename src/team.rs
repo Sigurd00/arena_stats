@@ -3,7 +3,7 @@ use std::fmt;
 use crate::class::Class;
 use crate::player::Player;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Team {
     pub players: Vec<Player>,
     pub comp: Comp,

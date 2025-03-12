@@ -1,6 +1,6 @@
 use crate::class::Class;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Player {
     pub name: String,
     pub realm: Option<Realm>,
@@ -9,7 +9,7 @@ pub struct Player {
 }
 
 //TODO: Obviously get a list of realms
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Realm {
     Draenor,
 }

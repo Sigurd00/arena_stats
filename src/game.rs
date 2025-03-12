@@ -9,10 +9,12 @@ use crate::{
     team::Team,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum GameMap {
     ALLMAPS, //TODO: Get a list of all arena maps
 }
+
+#[derive(Clone)]
 pub enum GameType {
     Twos,
     Threes,
@@ -39,7 +41,7 @@ impl fmt::Debug for GameType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Game {
     pub timestamp: DateTime<Utc>,
     pub map: GameMap,
@@ -64,19 +66,23 @@ impl Game {
             record[12].to_string(),
             record[13].to_string(),
         );
+        let player_count = record[2].parse::<i32>().unwrap_or_else(|_| {
+            eprintln!("Error: Invalid player count in record: {:?}", record);
+            0  // Default to 0
+        });
         Game {
             timestamp: parser::parse_timestamp(&record[0]),
             map: GameMap::ALLMAPS,
             friendly_team,
             enemy_team,
-            game_type: GameType::from_player_count(record[2].parse::<i32>().unwrap()),
-            duration: Duration::seconds(record[5].parse::<i64>().unwrap()),
+            game_type: GameType::from_player_count(player_count),
+            duration: Duration::seconds(record[5].parse::<i64>().expect("Failed to parse game duration")),
             victory: matches!(&record[6], "true"),
-            killing_blows: record[7].parse::<i32>().unwrap(),
-            damage: record[8].parse::<i32>().unwrap(),
-            healing: record[9].parse::<i32>().unwrap(),
-            honor: record[10].parse::<i32>().unwrap(),
-            rating_change: record[11].parse::<i32>().unwrap(),
+            killing_blows: record[7].parse::<i32>().expect("Failed to parse killing blows"),
+            damage: record[8].parse::<i32>().expect("Failed to parse damage"),
+            healing: record[9].parse::<i32>().expect("Failed to parse healing"),
+            honor: record[10].parse::<i32>().expect("Failed to parse honor"),
+            rating_change: record[11].parse::<i32>().expect("Failed to parse rating change"),
             is_rated: matches!(&record[15], "true"),
         }
     }

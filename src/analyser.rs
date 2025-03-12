@@ -7,7 +7,7 @@ use crate::game::{Game, GameType};
 use crate::game_bucket::{GameBucket, GameBuckets};
 use crate::team::Comp;
 use std::cmp::Reverse;
-use std::collections::{BTreeMap, BinaryHeap};
+use std::collections::HashMap;
 
 const COMP_THRESHOLD: usize = 20;
 
@@ -15,17 +15,17 @@ const COMP_THRESHOLD: usize = 20;
 /// Used for functions that either use all the games or use game buckets.
 enum Games<'a> {
     AllGames(&'a [Game]),
-    GameBucket(&'a GameBucket<'a>),
+    GameBucket(&'a GameBucket),
 }
 
 pub fn start(games: &[Game]) -> bool {
     let (mut friendly_comps, mut enemy_comps) = put_games_into_buckets(games);
     //maybe do all of these calculations as "jobs" such that we dont iterate over games 5-10 times, but do all the things that need to be done in one iteration instead
     calculate_rating_change(games);
-    calculate_average_gametime(Games::AllGames(games));
+    calculate_average_gametime(&Games::AllGames(games));
     debug!("{:?}, {:?}", friendly_comps.len(), enemy_comps.len());
     for (comp, games) in enemy_comps.iter_mut() {
-        let duration = calculate_average_gametime(Games::GameBucket(games));
+        let duration = calculate_average_gametime(&Games::GameBucket(&games));
         debug!(
             "Comp: {} - Average Duration: {} Minutes, {} Seconds - PlayCount: {}, Winrate: {:.2}",
             comp.to_string().pad_to_width(25),
@@ -48,17 +48,17 @@ pub fn start(games: &[Game]) -> bool {
 
 #[allow(clippy::type_complexity)]
 pub fn put_games_into_buckets(games: &[Game]) -> (GameBuckets, GameBuckets) {
-    let mut friendly_team_comps: GameBuckets = BTreeMap::new();
-    let mut enemy_team_comps: GameBuckets = BTreeMap::new();
+    let mut friendly_team_comps: GameBuckets = HashMap::new();
+    let mut enemy_team_comps: GameBuckets = HashMap::new();
     for game in games.iter() {
         friendly_team_comps
-            .entry(&game.friendly_team.comp)
-            .or_insert_with(|| GameBucket::new(&game.friendly_team.comp))
-            .add(game);
+            .entry(game.friendly_team.comp.clone())
+            .or_insert_with(|| GameBucket::new(game.friendly_team.comp.clone()))
+            .add(game.clone());
         enemy_team_comps
-            .entry(&game.enemy_team.comp)
-            .or_insert_with(|| GameBucket::new(&game.enemy_team.comp))
-            .add(game);
+            .entry(game.enemy_team.comp.clone())
+            .or_insert_with(|| GameBucket::new(game.enemy_team.comp.clone()))
+            .add(game.clone());
     }
     debug!(
         "total comps before prune: {:?}",
@@ -110,7 +110,7 @@ pub fn calculate_rating_change(games: &[Game]) -> (i32, i32) {
     (twos_rating, threes_rating)
 }
 
-fn calculate_average_gametime(game_bucket: Games) -> Duration {
+fn calculate_average_gametime(game_bucket: &Games) -> Duration {
     let mut total_duration = Duration::seconds(0);
     let total_games: i32;
     match game_bucket {
@@ -136,17 +136,12 @@ fn calculate_average_gametime(game_bucket: Games) -> Duration {
     average_duration
 }
 
-fn most_common_team<'a>(
-    game_buckets: BTreeMap<&'a Comp, GameBucket>,
-    count: usize,
-) -> Vec<(&'a Comp, usize)> {
-    assert!(count <= game_buckets.len());
-    let mut heap = BinaryHeap::with_capacity(count + 1);
-    for (comp, game_bucket) in game_buckets.into_iter() {
-        heap.push(Reverse((comp, game_bucket.len())));
-        if heap.len() > count {
-            heap.pop();
-        }
-    }
-    heap.into_sorted_vec().into_iter().map(|r| r.0).collect()
+fn most_common_team(game_buckets: HashMap<Comp, GameBucket>, count: usize) -> Vec<(Comp, usize)> {
+    let mut sorted: Vec<_> = game_buckets.into_iter()
+        .map(|(comp, bucket)| (comp, bucket.len()))
+        .collect();
+
+    sorted.sort_by_key(|&(_, len)| Reverse(len));
+    sorted.truncate(count);
+    sorted
 }

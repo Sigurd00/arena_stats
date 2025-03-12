@@ -35,7 +35,7 @@ pub fn parse_games(file_path: OsString) -> Result<Vec<Game>, Box<dyn Error>> {
 }
 
 pub fn parse_timestamp(timestamp: &str) -> DateTime<Utc> {
-    let timestamp = timestamp.parse::<i64>().unwrap();
+    let timestamp = timestamp.parse::<i64>().expect("Failed to parse timestamp");
     let naive = NaiveDateTime::from_timestamp(timestamp, 0);
     let datetime: DateTime<Utc> = DateTime::from_utc(naive, Utc);
     //TODO: maybe format timestamp here.
@@ -49,17 +49,17 @@ pub fn parse_teams(
     enemy_team_mmr: String,
 ) -> (Team, Team) {
     let friendly_team = Team::new(
-        prase_players(friendly_team),
-        friendly_team_mmr.parse::<i32>().unwrap(),
+        parse_players(friendly_team),
+    friendly_team_mmr.parse::<i32>().expect("Failed to parse friendly team mmr"),
     );
     let enemy_team = Team::new(
-        prase_players(enemy_team),
-        enemy_team_mmr.parse::<i32>().unwrap(),
+        parse_players(enemy_team),
+        enemy_team_mmr.parse::<i32>().expect("Failed to parse enemy team mmr"),
     );
     (friendly_team, enemy_team)
 }
 
-pub fn prase_players(team_string: String) -> Vec<Player> {
+pub fn parse_players(team_string: String) -> Vec<Player> {
     //DEMONHUNTER-Havoc-Demongubbe-TheMaelstrom,PRIEST-Holy-Skli
     let mut players: Vec<Player> = vec![];
     let player_strings: Vec<&str> = team_string.split(',').collect();

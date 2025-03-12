@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use log::Level::Debug;
 use log::{debug, log_enabled};
@@ -6,11 +6,11 @@ use percentage::{Percentage, PercentageDecimal};
 
 use crate::{game::Game, team::Comp};
 
-pub type GameBuckets<'a> = BTreeMap<&'a Comp, GameBucket<'a>>;
+pub type GameBuckets = HashMap<Comp, GameBucket>;
 
-pub struct GameBucket<'a> {
-    comp: &'a Comp,
-    games: Vec<&'a Game>,
+pub struct GameBucket {
+    comp: Comp,
+    games: Vec<Game>,
     wins: usize,
     losses: usize,
     len: usize,
@@ -18,8 +18,8 @@ pub struct GameBucket<'a> {
     should_update: bool,
 }
 
-impl<'a> GameBucket<'a> {
-    pub fn new(comp: &'a Comp) -> Self {
+impl GameBucket {
+    pub fn new(comp: Comp) -> Self {
         Self {
             comp,
             games: vec![],
@@ -32,17 +32,19 @@ impl<'a> GameBucket<'a> {
     }
 
     pub fn comp(&self) -> &Comp {
-        self.comp
+        &self.comp
     }
 
-    pub fn games(&self) -> &[&Game] {
+    pub fn games(&self) -> &[Game] {
         self.games.as_slice()
     }
 
-    pub fn add(&mut self, game: &'a Game) {
+    pub fn add(&mut self, game: Game) {
+        let victory = game.victory;
         self.games.push(game);
         self.len = self.games.len();
-        if game.victory {
+        
+        if victory {
             self.wins += 1;
         } else {
             self.losses += 1;
